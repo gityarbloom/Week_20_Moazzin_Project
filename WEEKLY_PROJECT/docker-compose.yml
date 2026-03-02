@@ -1,0 +1,92 @@
+services:
+
+  ocr_api_svc:
+    build: ./ocr_api_svc
+    container_name: ocr_api_svc_container
+    ports:
+      - "9000:9000"
+    environment:
+      OCR_URI: http://ocr_api_svc:9000/ocr
+
+
+  mongodb_svc:
+    image: mongo:latest
+    container_name: mongodb_svc_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: images-user
+      MONGO_INITDB_ROOT_PASSWORD: images-password
+      MONGO_DATABASE_NAME: images-db
+      MONGO_COLLECTION_NAME: images-collection
+      MONGO_URI: mongodb://images-user:images-password@mongodb_svc:27017
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "images-user", "--password", "images-password", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.3
+    container_name: kafka_container
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_KRAFT_MODE: 'true'
+      CLUSTER_ID: '1L6g7nGhU-eAKfL--X25wo'
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    volumes:
+      - kafka_kraft:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-version", "--bootstrap.servers", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  extract_data_svc:
+    build: ./extract_data_svc/
+    container_name: extract_data_svc_container
+    environment:
+      FOLDER_PATH: "tweet_images/"
+      OCR_URI: http://ocr_api_svc:9000/ocr
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MONGO_LOADER_URI: "http://mongodb_loader_svc:8200/set_image"
+      MONGO_DATABASE_NAME: images-db
+      MONGO_COLLECTION_NAME: images-collection
+      MONGO_URI: mongodb://images-user:images-password@mongodb_svc:27017
+    depends_on:
+      - kafka
+      - mongodb_loader_svc
+      - mongodb_svc
+  
+  mongodb_loader_svc:
+    build: ./mongodb_loader_svc/
+    ports:
+      - "8200:8200"
+    container_name: mongodb_loader_svc_container
+    environment:
+      MONGO_LOADER_URI: "http://mongodb_loader_svc:8200/set_image"
+      MONGO_DATABASE_NAME: images-db
+      MONGO_COLLECTION_NAME: images-collection
+      MONGO_URI: mongodb://images-user:images-password@mongodb_svc:27017
+    depends_on:
+      - mongodb_svc
+
+
+
+volumes:
+  kafka_kraft:
+  mongodb_data:
