@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 ./app/.env
 ./.env.db
+podcasts/
