@@ -1,6 +1,16 @@
-VOICE_DATA: ../podcasts/
-
 services:
+
+  extract_and_publish_mtd:
+    build: extract_and_publish_mtd/
+    ports: 
+      - 8200:8200
+    volumes:
+      - ./podcasts:app/podcasts
+    environment:
+      VOICE_DATA: ./podcasts
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
 
 
   kafka:
@@ -27,3 +37,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+volumes:
+  kafka_kraft:
