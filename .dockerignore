@@ -1,0 +1,31 @@
+# Ignore common version control and editor files
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Ignore common dependency and build output folders
+node_modules
+/venv
+__pycache__
+target
+build
+dist
+
+# Ignore development and temporary files
+*.log
+*.env
+**.env
+npm-debug.log
+yarn-error.log
+
+# Ignore documentation and Docker-related files not needed in the final image
+*.md
+docs
+LICENSE
+Dockerfile*
+docker-compose*
+.dockerignore
