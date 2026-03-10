@@ -13,15 +13,15 @@ class MetadataExtraction:
         file_counter = 0
 
         for file in os.listdir(data_path):
-            mtd = {}
-            file_path = f"{data_path}{file}"
             file_counter += 1
             metadata_file = {}
+
+            file_path = f"{data_path}{file}"
             audio = TinyTag.get(filename=file_path)
-            metadata_file["File Name"] = file
-            metadata_file["File Path"] = file_path
-            metadata_file["MegaByte Size"] = audio.filesize / 1000000
-            metadata_file["Playback Duration on Seconds"] = int(audio.duration)
-            mtd[f"Metadata of File Number {file_counter}"] = metadata_file
+            metadata_file["File_Name"] = file
+            metadata_file["File_Path"] = file_path
+            metadata_file["MegaByte_Size"] = audio.filesize / 1000000
+            metadata_file["Audio_Track_Length"] = int(audio.duration)
+            print(f"Extract the Metadata of File Number {file_counter}: {metadata_file}")
             mtd_list.append(metadata_file)
         return mtd_list

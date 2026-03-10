@@ -1,23 +1,12 @@
 services:
 
-  extract_and_publish_mtd:
-    build: extract_and_publish_mtd/
-    ports: 
-      - 8200:8200
-    volumes:
-      - ./podcasts:app/podcasts
-    environment:
-      VOICE_DATA: ./podcasts
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    depends_on:
-      - kafka
-
 
   kafka:
     image: confluentinc/cp-kafka:7.8.3
-    container_name: kafka_container
+    container_name: kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_KRAFT_MODE: 'true'
@@ -25,11 +14,15 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     volumes:
       - kafka_kraft:/var/lib/kafka/data
     healthcheck:
@@ -38,5 +31,88 @@ services:
       timeout: 5s
       retries: 5
 
+      
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: elasticsearch
+    environment:
+      - ES_URI=elasticsearch:9200
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - 9200:9200
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.2
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: moazin-user
+      MONGO_INITDB_ROOT_PASSWORD: moazin-password
+      MONGO_COLLECTION_NAME: moazin-collection
+      MONGO_URI: mongodb://moazin-user:moazin-password@mongodb:27017
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "images-user", "--password", "images-password", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  extraction_from_wav_files:
+    build: extraction_from_wav_files/
+    ports:
+      - 8200:8200
+    environment:
+      VOICE_DATA: /app/podcasts/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    volumes:
+      - ./podcasts:/app/podcasts
+    depends_on:
+      - kafka
+
+
+  elastic_and_mongo_saver:
+    build: elastic_and_mongo_saver/
+    container_name: elastic_and_mongo_saver
+    ports:
+      - 8800:8800
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ES_URI: http://elasticsearch:9200
+      VOICE_DATA: /app/podcasts/
+      MONGO_URI: mongodb://moazin-user:moazin-password@mongodb:27017
+    volumes:
+      - ./podcasts:/app/podcasts
+    depends_on:
+      - kafka
+      - elasticsearch
+      - mongodb
+      - extraction_from_wav_files
+    
 volumes:
   kafka_kraft:
+  mongodb_data:
