@@ -7,7 +7,7 @@ class ServiceConfigurations:
     def __init__(self):
         load_dotenv()
         self.data_path = os.getenv("VOICE_DATA", "c:/Users/משתמש/Desktop/CodeStudy/Week_20/Moazzin_Project/podcasts/")
-        self.elstic_uri = os.getenv("ES_URI")
+        self.elastic_uri = os.getenv("ES_URI")
         self.kafka_boots_etc = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092")
         self.producer_config = {"bootstrap.servers": self.kafka_boots_etc}
         self.consumer_config = {

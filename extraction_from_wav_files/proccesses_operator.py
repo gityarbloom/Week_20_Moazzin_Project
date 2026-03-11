@@ -11,20 +11,20 @@ class ProccessesOperator:
         
         
     def mtd_extraction(self):
-        self.mtd_list = MetadataExtraction(self.data_path).metadata
-        return self.mtd_list
+        mtd_list = MetadataExtraction(self.data_path).metadata
+        return mtd_list
     
 
-    def convert_to_bin_list(self):
+    def convert_to_bin_list(self, mtd_list: list):
         bin_list = []
-        for j in self.mtd_list:
+        for j in mtd_list:
             bin_list.append(json.dumps(j))
         return bin_list
     
 
-    def kafka_publish(self, topic_name: str):
+    def kafka_publish(self, topic_name: str, mtd_list: list):
         producer = KafkaPublisher(self.prod_config)
-        bin_list = self.convert_to_bin_list()
+        bin_list = self.convert_to_bin_list(mtd_list)
 
         counter = 0
         for m in bin_list:
@@ -32,4 +32,4 @@ class ProccessesOperator:
             print(f"published Metadata-Events number {counter} to Kafka Topic named {topic_name}")
             counter += 1
         producer.close()
-        print(f"""finshed to publish {counter} Metadata-Events to Kafka Topic named {topic_name}""")
+        yield f"""finshed to publish {counter} Metadata-Events to Kafka Topic named {topic_name}"""

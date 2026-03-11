@@ -7,29 +7,24 @@ import time
 class KafkaProdConsum:
 
     def __init__(self, prod_config =None, consum_config =None):
-        self.prod_config = prod_config
-        self.consum_config = consum_config
-        self.kafka_producer = None
-        self.kafka_consumer = None
-
+        if prod_config:
+            self.kafka_producer = self.get_producer(prod_config)
+        if consum_config:
+            self.kafka_consumer = self.get_consumer(consum_config)
+        else:
+            raise Exception("No instance of the model was created because no configurations were received.")
     
-    def get_producer(self):
-        if self.prod_config is None:
-            return "No configurations have been defined."
-        kafka_producer = Producer(self.prod_config)
+    def get_producer(self, config):
+        kafka_producer = Producer(config)
         return kafka_producer
     
 
-    def get_consumer(self):
-        if self.consum_config is None:
-            return "No configurations have been defined."
-        kafka_consumer = Consumer(self.consum_config)
+    def get_consumer(self, config):
+        kafka_consumer = Consumer(config)
         return kafka_consumer
 
     
     def production_to_kafka(self, topic_name: str, events_list: list[dict]):
-        if self.kafka_producer is None:
-            self.kafka_producer = self.get_producer()
         try:
             counter = 0
             for doc in events_list:
