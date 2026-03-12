@@ -16,7 +16,7 @@ class ServiceEngineModel:
 
     def get_kafka_event(self, topic_name: str):
         if not self.kafka_consumer:
-            self.kafka_consumer = KafkaProdConsum(self.config.consumer_config)
+            self.kafka_consumer = KafkaProdConsum(consum_config=self.config.consumer_config)
         return self.kafka_consumer.consum_from_kafka(topic_name)
 
 

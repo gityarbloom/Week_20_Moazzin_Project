@@ -12,17 +12,15 @@ class KafkaPublisher:
         for i in range(10):
             try:
                 producer = Producer(publisher_config)
-                print(f"Kafka retry {i+1}/10...")
+                print(f"Kafka retry {i+1 /10}...")   
                 return producer
             except Exception as e:
                 if i == 9: raise Exception(f"Kafka failed, \nDeatails: {e}")
-                time.sleep(1)
-            print(f"Kafka retry {i+1}/10...")   
+                time.sleep(0.5)
 
-    def send_mtd_to_kafka(self, topic: str, data: str):
+    def send_mtd_to_kafka(self, topic: str, data: bytes):
             try:
-                value = data.encode("utf-8")
-                self.producer.produce(topic=topic, value=value, callback=self.delivery_report)
+                self.producer.produce(topic=topic, value=data, callback=self.delivery_report)
                 self.producer.poll(0)
             except Exception as e:
                 raise Exception(f"Kafka Publish Failed: {e}")
