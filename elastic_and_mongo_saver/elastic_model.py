@@ -31,7 +31,7 @@ class Elastic_MTD_Stor:
             raise Exception(f"ElasticSearch Failed. \n{e}")
 
 
-    def save_es_document(self, doc: dict):
+    def save_es_document(self, doc: dict, total: int):
         doc_id = doc["id"]
         response = self.es.index(index=self.index, id= doc_id, document= doc)
-        return f"\nDocument is {response['result']}\n"
+        return f"\nDocument number {total} is {response['result']}\n"

@@ -20,13 +20,13 @@ class ServiceEngineModel:
         return self.kafka_consumer.consum_from_kafka(topic_name)
 
 
-    def save_in_elastic(self, doc: dict, elastic_index: str =None, properties: str =None):
+    def save_in_elastic(self, doc: dict, total: int, elastic_index: str =None, properties: str =None):
         if not self.elastic:
             if not(elastic_index and properties):
                 raise Exception("No instance of the model was created because no configurations \n(elastic_index and map-properties) were received.")
             else:
                 self.elastic = Elastic_MTD_Stor(self.config.elastic_uri, elastic_index, properties)
-        saving_result = self.elastic.save_es_document(doc=doc)
+        saving_result = self.elastic.save_es_document(doc=doc, total=total)
         return saving_result
 
 

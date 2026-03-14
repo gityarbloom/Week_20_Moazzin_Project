@@ -23,9 +23,10 @@ class MetadataExtraction:
 
             audio = TinyTag.get(filename=file_path)
             metadata_file["File_Name"] = file
+            metadata_file["File_Number"] = file_counter
             metadata_file["File_Path"] = file_path
             metadata_file["MegaByte_Size"] = audio.filesize / 1000000
             metadata_file["Audio_Track_Length"] = int(audio.duration)
-            metadata_file["Extrction_Text"] = stt_extractor.wav_file_to_text(audio_path=file_path)
+            metadata_file["Extrcted_Text"] = stt_extractor.wav_file_to_text(audio_path=file_path)
 
-            yield metadata_file, file_counter
+            yield metadata_file
