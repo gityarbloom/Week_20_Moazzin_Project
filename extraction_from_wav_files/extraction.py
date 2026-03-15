@@ -36,6 +36,6 @@ class MetadataExtraction:
             metadata_file["Percent_bds"] = self.risks_analyser.get_percent_bds(text=text)
             metadata_file["Is_bds"] = self.risks_analyser.is_it_bds(text=text)
             metadata_file["Level_threat_bds"] = self.risks_analyser.get_level_threat_bds(text=text)
-            # self.risks_analyser.restart_analyser()
+            self.risks_analyser.restart_analyser()
 
             yield metadata_file
