@@ -12,7 +12,6 @@ def decryp_base_64(enc_txt):
     return sample_string
 
 
-
 def encryp_base_64(str_txt):
 
     sample_string = str_txt
@@ -21,3 +20,18 @@ def encryp_base_64(str_txt):
     base64_string = base64_bytes.decode("ascii")
 
     return base64_string
+
+
+##################################################
+
+
+# c1 = "aba"
+# print(c1 in ["aba", "aima"])
+
+# words_string = "aaa, bbb ccc"
+
+# words_string = words_string.split(",")
+
+# for i in range(len(words_string)):
+#     words_string[i] = words_string[i].split()
+# print(words_string)
