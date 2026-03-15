@@ -25,12 +25,14 @@ class RiskLevelAnalysis:
 
             for i in range(len(text)):
                 if self.couples_check(text, i, self.l_level):
-                    risk_count += len(text) / 20
+                    risk_count += 1
                 elif self.couples_check(text, i, self.h_level):
-                    risk_count += len(text) / 10
-                if risk_count >= 100:
-                    self.percent_bds = 100
-                    return self.percent_bds
+                    risk_count += 2
+            risk_count = (risk_count /len(text)) *100
+
+            if risk_count >= 100:
+                self.percent_bds = 100
+                return self.percent_bds
             self.percent_bds = risk_count
         return self.percent_bds
     
