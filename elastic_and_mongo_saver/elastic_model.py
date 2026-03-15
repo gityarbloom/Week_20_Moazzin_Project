@@ -1,8 +1,12 @@
-from elasticsearch import Elasticsearch, NotFoundError
+from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+import time
+
+
 
 class Elastic_MTD_Stor:
     def __init__(self, es_uri: str, index: str, es_properties: dict[str, dict[str, str]]):
+        time.sleep(10)
         self.es = Elasticsearch(es_uri)
         self.index = index
         self.mapping = {'mappings': {'properties': es_properties}}
